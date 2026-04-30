@@ -4,15 +4,33 @@ import flet as ft
 class Controller:
     def __init__(self, view, model):
         # the view, with the graphical elements of the UI
+        self._fermataPartenza = None
+        self._fermataArrivo = None
         self._view = view
         # the model, which implements the logic of the program and holds the data
         self._model = model
 
     def handleCreaGrafo(self,e):
-        pass
+        self._model.buildGraph()
+        self._view.lst_result.controls.clear()
+        #stampiamo le informazioni utili
+        self._view.lst_result.controls.append(ft.Text("grafo creato"))
+        self._view.lst_result.controls.append(ft.Text(f"il grafo ha {self._model.get_numnodi()} nodi"))
+        self._view.lst_result.controls.append(ft.Text(f"il grafo ha {self._model.get_numarchi()} archi"))
+        self._view.update_page()
 
-    def handleCercaRaggiungibili(self,e):
-        pass
+    def handleCercaRaggiungibili(self, e):
+        if self._fermataPartenza is None:
+            self._view.lst_result.controls.clear()
+            self._view.lst_result.controls.append(ft.Text("Seleziona una stazione!", color="red"))
+            self._view.update_page()
+            return
+        nodes=self._model.get_BFSNodesFromEdges(self._fermataPartenza)
+        self._view.lst_result.controls.clear()
+        self._view.lst_result.controls.append(ft.Text("Stazioni raggiungibili: "))
+        for n in nodes:
+            self._view.lst_result.controls.append(ft.Text(n))
+
 
     def loadFermate(self, dd: ft.Dropdown()):
         fermate = self._model.fermate
