@@ -29,7 +29,8 @@ class Controller:
         self._view.lst_result.controls.clear()
         self._view.lst_result.controls.append(ft.Text("Stazioni raggiungibili: "))
         for n in nodes:
-            self._view.lst_result.controls.append(ft.Text(n))
+            self._view.lst_result.controls.append(ft.Text(n.nome))
+            self._view.update_page()
 
 
     def loadFermate(self, dd: ft.Dropdown()):
