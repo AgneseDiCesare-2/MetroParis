@@ -53,11 +53,11 @@ class Model:
     #a questo punto ho creato i nodi e gli archi
     #posso implementare calcola raggiungibili
 
-    def calcola_raggiungibili(self, partenza):
-        lista_raggiungibili=[] #ci metto le fermate
-        for vicino in self._grafo[partenza]: #modo per accedere ai vicini
-            lista_raggiungibili.append(vicino)
-        return lista_raggiungibili
+    #def calcola_raggiungibili(self, partenza):
+    #    lista_raggiungibili=[] #ci metto le fermate
+    #   for vicino in self._grafo[partenza]: #modo per accedere ai vicini
+    #       lista_raggiungibili.append(vicino)
+    #    return lista_raggiungibili
 
     #4 esplorazioni equivalenti!!! cambia il tipo o l'output
     #vedremo come scegliere quello più conveniente
@@ -91,4 +91,47 @@ class Model:
         return nodi
 
 
+ #per costruire il grafo pesato:
+    def buildGraphPesato(self):
+        self._grafo.clear()
+        self._grafo.add_nodes_from(self._fermate)
+        self.addEdgesPesati()
 
+    def addEdgesPesati(self):
+        #riutilizziamo il principio di AddEdges3,
+        #ma contiamo quante volte proviamo ad aggiungere l'arco.
+        self._grafo.clear_edges()
+        alledges=DAO.getAllEdges()
+        #ciclo che faremo spesso quando le query per ottenere il peso degli archi sono complesse
+        for conn in alledges:
+            u=self._idMapFermate[conn.id_stazP]
+            v = self._idMapFermate[conn.id_stazA]
+
+            if self._grafo.has_edge(u,v):
+                self._grafo[u][v]["weight"] +=1
+            else:
+                self._grafo.add_edge(u, v, weight = 1)
+
+        #altrimenti posso fare una query nel DAO (group by e count delle righe con stesso id_partenza e arrivo)!
+        #bisogna capire quando conviene (query semplice)
+
+    def addEdgesQuery(self):
+        #delega il calcolo del peso alla query sql
+        self._grafo.clear_edges()
+        allEdgesWithPeso=DAO.getAllEdgesPesati()
+        #lista di tuple (id_partenza, id_arrivo, peso)
+        for e in allEdgesWithPeso:
+            u=self._idMapFermate[e[0]]
+            v=self._idMapFermate[e[1]]
+            weight=e[2]
+            self._grafo.add_edge(u,v,weight=weight)
+
+    def getArchiPesoMaggiore(self):
+        edges=self._grafo.edges(data=True)
+        #con data=True salvo anche il peso, altrimenti no.
+        edgesMaggiori=[]
+        for e in edges:
+            if self._grafo.get_edge_data(e[0], e[1])["weight"] >1:
+                #self._grafo[e[0]][e[1]]["weight"]
+                edgesMaggiori.append(e)
+        return edgesMaggiori
